@@ -1,6 +1,6 @@
 import Foundation
 
-enum ServiceErrors: Error, LocalizedError {
+public enum ServiceErrors: Error, LocalizedError {
     case custom(message: String)
     case unknownUrl
     case dataSerializationFailed(dataObjectName: String)

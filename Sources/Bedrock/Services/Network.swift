@@ -1,19 +1,21 @@
 import Foundation
 import Combine
 
-public enum HttpMethod: String {
-    case get = "GET"
-    case post = "POST"
-    case delete = "DELETE"
-    case put = "PUT"
-    case patch = "PATCH"
-}
-
 public struct Networking {
-    private static func apiCall(httpMethod: HttpMethod, url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
-        guard let token = await ConfigService.shared.getConfig()?.anonToken else {
-            throw ServiceErrors.custom(message: "Token not found.")
-        }
+    private let urlProvider: URLProvider
+    private let dynamicTokenProvider: DynamicTokenProvider
+
+    public init(urlProvider: URLProvider, dynamicTokenProvider: DynamicTokenProvider) {
+        self.urlProvider = urlProvider
+        self.dynamicTokenProvider = dynamicTokenProvider
+    }
+    
+    public func updateAuthState(_ newState: AuthState) {
+        dynamicTokenProvider.updateAuthState(newState)
+    }
+    
+    private func apiCall(httpMethod: HttpMethod, url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+        let token = try await dynamicTokenProvider.getToken()
         
         var request = URLRequest(url: url)
         request.httpMethod = httpMethod.rawValue
@@ -30,30 +32,28 @@ public struct Networking {
         return response
     }
     
-    public static func get(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+    public func get(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
         try await apiCall(httpMethod: .get, url: url, body: body)
     }
     
-    public static func post(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+    public func post(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
         try await apiCall(httpMethod: .post, url: url, body: body)
     }
     
-    public static func put(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+    public func put(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
         try await apiCall(httpMethod: .put, url: url, body: body)
     }
     
-    public static func patch(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+    public func patch(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
         try await apiCall(httpMethod: .patch, url: url, body: body)
     }
     
-    public static func delete(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
+    public func delete(url: URL, body: Data? = nil) async throws -> (Data, URLResponse) {
         try await apiCall(httpMethod: .delete, url: url, body: body)
     }
     
-    public static func createUrl(endPoint: String) async throws -> URL {
-        guard let baseUrl = await ConfigService.shared.getConfig()?.apiUrl else {
-            throw ServiceErrors.baseUrlNotConfigured
-        }
+    public func createUrl(endPoint: String) async throws -> URL {
+        let baseUrl = try await urlProvider.getBaseURL()
         
         let url = URL(string: "\(baseUrl)\(endPoint)")
         
@@ -63,21 +63,19 @@ public struct Networking {
         
         return url
     }
-    
-    struct helpers {
-        public static func createQueryString(items: [String]) -> String {
-            var returnString = ""
-            for item in items {
-                returnString += "\(item),"
-            }
-            
-            if returnString.last == "," {
-                _ = returnString.popLast()
-            }
-            
-            return returnString
-        }
-    }
 }
 
+extension Networking {
+    public static func createDefault() -> Networking {
+        let configTokenProvider = ConfigTokenProvider()
+        let userTokenProvider = UserTokenProvider()
+        let urlProvider = ConfigURLProvider()
 
+        let dynamicTokenProvider = DynamicTokenProvider(
+            configTokenProvider: configTokenProvider,
+            userTokenProvider: userTokenProvider
+        )
+        
+        return Networking(urlProvider: urlProvider, dynamicTokenProvider: dynamicTokenProvider)
+    }
+}

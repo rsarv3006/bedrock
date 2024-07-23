@@ -101,7 +101,7 @@ public extension ConfigService {
     static let shared = ConfigService(
         remoteLoader: RemoteConfigLoader(),
         localLoader: LocalConfigLoader(),
-        cacheStrategy: TimeBabasedCacheStrategy()
+        cacheStrategy: TimeBasedCacheStrategy()
     )
 }
 
@@ -159,18 +159,5 @@ public class LocalConfigLoader: ConfigLoader {
 
     public func loadConfig() async -> Config? {
         return loadJSON(filename: "DefaultConfig")
-    }
-}
-
-public class TimeBabasedCacheStrategy: ConfigCacheStrategy {
-    let cacheTimeInSeconds: Double
-
-    init(cacheTimeInSeconds: Double = 300) { // 5 minutes default
-        self.cacheTimeInSeconds = cacheTimeInSeconds
-    }
-
-    public func shouldLoadNewConfig(lastLoadedDate: Date?) -> Bool {
-        guard let lastLoadedDate = lastLoadedDate else { return true }
-        return Date().timeIntervalSince(lastLoadedDate) > cacheTimeInSeconds
     }
 }
