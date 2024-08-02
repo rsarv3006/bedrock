@@ -64,18 +64,3 @@ public struct Networking {
         return url
     }
 }
-
-extension Networking {
-    public static func createDefault() -> Networking {
-        let configTokenProvider = ConfigTokenProvider()
-        let userTokenProvider = UserTokenProvider()
-        let urlProvider = ConfigURLProvider()
-
-        let dynamicTokenProvider = DynamicTokenProvider(
-            configTokenProvider: configTokenProvider,
-            userTokenProvider: userTokenProvider
-        )
-        
-        return Networking(urlProvider: urlProvider, dynamicTokenProvider: dynamicTokenProvider)
-    }
-}

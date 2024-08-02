@@ -5,7 +5,7 @@ private struct KeychainAccounts {
     static let accessToken = "access_token"
 }
 
-private struct KeychainWrapperError: Error {
+public struct KeychainWrapperError: Error {
     var message: String?
     var type: KeychainErrorType
 
