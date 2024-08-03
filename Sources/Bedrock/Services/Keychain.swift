@@ -35,7 +35,7 @@ public struct KeychainWrapperError: Error {
     }
 }
 
-class KeychainService {
+public class KeychainService {
     private static func storeGenericPasswordFor(
         account: String,
         service: String,

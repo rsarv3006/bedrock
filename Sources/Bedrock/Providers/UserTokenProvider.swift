@@ -1,7 +1,7 @@
 import Foundation
 
-struct UserTokenProvider: TokenProvider {
-    func getToken() async throws -> String {
+public struct UserTokenProvider: TokenProvider {
+    public func getToken() async throws -> String {
         return try KeychainService.getAccessToken()
     }
 }
