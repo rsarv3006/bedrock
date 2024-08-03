@@ -3,7 +3,7 @@ import Foundation
 public struct JsonHelpers {
     public static let decoder = JSONDecoder()
     
-    public func loadJSON<T: Codable>(filename: String) -> T? {
+    public static func loadJSON<T: Codable>(filename: String) -> T? {
         guard let path = Bundle.main.path(forResource: filename, ofType: "json") else {
             print("JSON file not found")
             return nil
